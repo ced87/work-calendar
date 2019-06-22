@@ -1,4 +1,4 @@
-#Add work duties to my Google calendar
+# Add work duties to my Google calendar
 
 This is my first Python app I've made.
 
