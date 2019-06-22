@@ -5,3 +5,5 @@ to my google calendar.
 
 This code probably needs a lot of cleaning
 up. This is my first Python app completed.
+
+### Only thing that is missing is the "client_secret.json" file that I got from the Google APIs site.
