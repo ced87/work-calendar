@@ -127,6 +127,7 @@ dmypy.json
 .pyre/
 
 #my app files
+Rota/
 backups/
 builderapps/
 token.pkl

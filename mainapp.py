@@ -86,13 +86,12 @@ print(f"Rest day calendar selected: {calendar_list['items'][user_restday_calenda
 work_calendar = calendar_list['items'][user_work_calendar - 1]['id']
 restday_calendar = calendar_list['items'][user_restday_calendar - 1]['id']
 
+
 # fixing the date and time because google calendar needs it in a specific way.
 # "%Y-%m-%dT%H:%M:%S"
 def adjust_datetime(user_date_input):
     date_matches = list(datefinder.find_dates(user_date_input))
-    date_match = date_matches[0]
-    day_of_week = date_match.strftime('%A')
-    return date_match, day_of_week
+    return date_matches[0], date_matches[0].strftime('%A')
 
 
 # sending the event to google calendar
@@ -119,22 +118,22 @@ def create_duty_event(event_start_time, summary, minutes_time=1, hours_time=1, d
 
 
 # adding a rest day to the calendar
-def create_restday_event(date_rd):
-    date_fixed = date_rd.strftime('%d %m %Y')
+def create_restday_event(date_restday):
+    date_fixed = date_restday.strftime('%d %m %Y')
     day = adjust_datetime(f"{date_fixed}")[1]
-    start_date = date_rd
-    end_date = date_rd + timedelta(days=1)
+    start_date = date_restday
+    end_date = date_restday + timedelta(days=1)
     event = {
         'summary': 'RD',
         'start': {
             'date': start_date.strftime("%Y-%m-%d"),
-                },
+        },
         'end': {
             'date': end_date.strftime("%Y-%m-%d"),
-                }
-            }
+        }
+    }
     service.events().insert(calendarId=restday_calendar, body=event).execute()
-    print(f'Rest day entered into calendar on {day} {date_rd.strftime("%d %m %Y")}\n')
+    print(f'Rest day entered into calendar on {day} {date_restday.strftime("%d %m %Y")}\n')
 
 
 # next few functions are for adding duties to the calendar. Work duties are
@@ -212,7 +211,7 @@ def user_event_input(date_event):
                 create_sunday_event(duty, date_event)
                 break
             else:
-                print('Input format incorrect. Please enter again.\n')
+                print('Format incorrect. Please enter again.\n')
 
         elif day == 'Monday':
             duty = str.upper(input('Monday: '))
@@ -223,7 +222,7 @@ def user_event_input(date_event):
                 create_monday_thursday_event(duty, date_event)
                 break
             else:
-                print('Input format incorrect. Please enter again.\n')
+                print('Format incorrect. Please enter again.\n')
 
         elif day == 'Tuesday':
             duty = str.upper(input('Tuesday: '))
@@ -234,7 +233,7 @@ def user_event_input(date_event):
                 create_monday_thursday_event(duty, date_event)
                 break
             else:
-                print('Input format incorrect. Please enter again.\n')
+                print('Format incorrect. Please enter again.\n')
 
         elif day == 'Wednesday':
             duty = str.upper(input('Wednesday: '))
@@ -245,7 +244,7 @@ def user_event_input(date_event):
                 create_monday_thursday_event(duty, date_event)
                 break
             else:
-                print('Input format incorrect. Please enter again.\n')
+                print('Format incorrect. Please enter again.\n')
 
         elif day == 'Thursday':
             duty = str.upper(input('Thursday: '))
@@ -256,7 +255,7 @@ def user_event_input(date_event):
                 create_monday_thursday_event(duty, date_event)
                 break
             else:
-                print('Input format incorrect. Please enter again.\n')
+                print('Format incorrect. Please enter again.\n')
 
         elif day == 'Friday':
             duty = str.upper(input('Friday: '))
@@ -267,7 +266,7 @@ def user_event_input(date_event):
                 create_friday_event(duty, date_event)
                 break
             else:
-                print('Input format incorrect. Please enter again.\n')
+                print('Format incorrect. Please enter again.\n')
 
         else:
             duty = str.upper(input('Saturday: '))
@@ -278,7 +277,7 @@ def user_event_input(date_event):
                 create_saturday_event(duty, date_event)
                 break
             else:
-                print('Input format incorrect. Please enter again.\n')
+                print('Format incorrect. Please enter again.\n')
 
 
 def weekly_input():
@@ -286,14 +285,13 @@ def weekly_input():
         while True:
             try:
                 user_date_input = adjust_datetime(input('\nWeek commencing (eg. 21 Jul 19): '))
-            except:
+            except IndexError:
                 print('Date format is incorrect. Please enter again.')
             else:
                 break
 
         user_date = user_date_input[0]
-        user_day_of_week = user_date_input[1]
-        if user_day_of_week == 'Sunday':
+        if user_date_input[1] == 'Sunday':
             print('\n### Enter duty number or leave blank for rest day. ###\n')
             for i in range(7):
                 user_event_input(user_date)
