@@ -383,12 +383,12 @@ def rota_input():
                 i += 1
                 if rota_number in [11, 25, 35, 45, 60]:
                     rota_number += 2
-                    i += 2
                     user_date = user_date + timedelta(days=14)
+                    i += 2
                 elif rota_number in [12, 26, 36, 46, 61, 65]:
                     rota_number += 1
-                    i += 1
                     user_date = user_date + timedelta(days=7)
+                    i += 1
                 elif rota_number == 72:
                     rota_number = 1
 
