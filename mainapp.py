@@ -12,7 +12,8 @@ scope = ['https://www.googleapis.com/auth/calendar']
 
 credentials = None
 # The file token.pkl stores the user's access and refresh tokens, and is
-# created automatically when the authorisation flow completes for the first time.
+# created automatically when the authorisation
+# flow completes for the first time.
 if os.path.exists('token.pkl'):
     credentials = pickle.load(open("token.pkl", "rb"))
 # If there are no (valid) credentials available, let the user log in.
@@ -20,7 +21,8 @@ if not credentials or not credentials.valid:
     if credentials and credentials.expired and credentials.refresh_token:
         credentials.refresh(Request())
     else:
-        flow = InstalledAppFlow.from_client_secrets_file('client_secret.json', scope)
+        flow = InstalledAppFlow.from_client_secrets_file(
+            'client_secret.json', scope)
         credentials = flow.run_local_server()
         # Save the credentials for the next run
         pickle.dump(credentials, open("token.pkl", "wb"))
@@ -40,7 +42,8 @@ duty_sat = pickle.load(load_duty)
 
 rota_list = pickle.load(open('rota_duty_list.pkl', 'rb'))
 
-print('\n### This program will enter West Ruislip Timetable 70 work duties into your Google Calendar. ###')
+print('\n### This program will enter \
+West Ruislip Timetable 70 work duties into your Google Calendar. ###')
 
 # Check if user made a work calendar selection in the past.
 # If not, save the current selection for future use.
@@ -55,7 +58,9 @@ else:
 
     while True:
         try:
-            user_work_calendar = int(input('\nEnter the number of the Google calendar to use for work duties: '))
+            user_work_calendar = int(
+                input('\nEnter the number of the Google calendar to use for \
+                    work duties: '))
         except:
             print('Enter a valid calendar number. Please enter again.')
         else:
@@ -78,7 +83,8 @@ else:
         except:
             print('Enter a valid calendar number. Please enter again.')
         else:
-            pickle.dump(user_restday_calendar, open('restday_selection.pkl', 'wb'))
+            pickle.dump(user_restday_calendar, open(
+                'restday_selection.pkl', 'wb'))
             break
 
 print(f"Rest day calendar selected: {calendar_list['items'][user_restday_calendar - 1]['summary']}\n"
@@ -100,7 +106,8 @@ def adjust_datetime(user_date_input):
 def create_duty_event(event_start_time, summary, minutes_time=1, hours_time=1, description=None):
     timezone = 'Europe/London'
     start_time = datetime.strptime(event_start_time, "%Y-%m-%dT%H:%M:%S")
-    end_time = start_time + timedelta(minutes=minutes_time, hours=(hours_time + 0.5))
+    end_time = start_time + \
+        timedelta(minutes=minutes_time, hours=(hours_time + 0.5))
     event = {
         'summary': summary,
         'description': description,
@@ -135,7 +142,8 @@ def create_restday_event(date_restday):
         }
     }
     service.events().insert(calendarId=restday_calendar, body=event).execute()
-    print(f'Rest day entered into calendar on {day} {date_restday.strftime("%d %m %Y")}\n')
+    print(
+        f'Rest day entered into calendar on {day} {date_restday.strftime("%d %m %Y")}\n')
 
 
 # next few functions are for adding duties to the calendar. Work duties are
@@ -143,7 +151,8 @@ def create_restday_event(date_restday):
 def create_sunday_event(duty_number, duty_date):
     duty_list = duty_sun
     date_fixed = duty_date.strftime('%d %b %Y')
-    duty_date_time = adjust_datetime(f"{date_fixed} {duty_list[duty_number]['start']}")[0]
+    duty_date_time = adjust_datetime(
+        f"{date_fixed} {duty_list[duty_number]['start']}")[0]
     duty_date_time = duty_date_time.strftime("%Y-%m-%dT%H:%M:%S")
     day = adjust_datetime(f"{date_fixed} {duty_list[duty_number]['start']}")[1]
     create_duty_event(duty_date_time,
@@ -158,7 +167,8 @@ def create_sunday_event(duty_number, duty_date):
 def create_monday_thursday_event(duty_number, duty_date):
     duty_list = duty_mon_thur
     date_fixed = duty_date.strftime('%d %b %Y')
-    duty_date_time = adjust_datetime(f"{date_fixed} {duty_list[duty_number]['start']}")[0]
+    duty_date_time = adjust_datetime(
+        f"{date_fixed} {duty_list[duty_number]['start']}")[0]
     duty_date_time = duty_date_time.strftime("%Y-%m-%dT%H:%M:%S")
     day = adjust_datetime(f"{date_fixed} {duty_list[duty_number]['start']}")[1]
     create_duty_event(duty_date_time,
@@ -173,7 +183,8 @@ def create_monday_thursday_event(duty_number, duty_date):
 def create_friday_event(duty_number, duty_date):
     duty_list = duty_fri
     date_fixed = duty_date.strftime('%d %b %Y')
-    duty_date_time = adjust_datetime(f"{date_fixed} {duty_list[duty_number]['start']}")[0]
+    duty_date_time = adjust_datetime(
+        f"{date_fixed} {duty_list[duty_number]['start']}")[0]
     duty_date_time = duty_date_time.strftime("%Y-%m-%dT%H:%M:%S")
     day = adjust_datetime(f"{date_fixed} {duty_list[duty_number]['start']}")[1]
     create_duty_event(duty_date_time,
@@ -188,7 +199,8 @@ def create_friday_event(duty_number, duty_date):
 def create_saturday_event(duty_number, duty_date):
     duty_list = duty_sat
     date_fixed = duty_date.strftime('%d %b %Y')
-    duty_date_time = adjust_datetime(f"{date_fixed} {duty_list[duty_number]['start']}")[0]
+    duty_date_time = adjust_datetime(
+        f"{date_fixed} {duty_list[duty_number]['start']}")[0]
     duty_date_time = duty_date_time.strftime("%Y-%m-%dT%H:%M:%S")
     day = adjust_datetime(f"{date_fixed} {duty_list[duty_number]['start']}")[1]
     create_duty_event(duty_date_time,
@@ -348,7 +360,8 @@ def rota_input():
     while True:
         while True:
             try:
-                user_date_input = adjust_datetime(input('\nWeek commencing (eg. 21 Jul 19): '))
+                user_date_input = adjust_datetime(
+                    input('\nWeek commencing (eg. 21 Jul 19): '))
             except IndexError:
                 print('Date format is incorrect. Please enter again.')
             else:
@@ -357,14 +370,16 @@ def rota_input():
         user_date = user_date_input[0]
         if user_date_input[1] == 'Sunday':
             while True:
-                rota_number = int(input("Enter starting rota number: (1 to 71) "))
+                rota_number = int(
+                    input("Enter starting rota number: (1 to 71) "))
                 if rota_number < 1 or rota_number > 71:
                     print('Try again.')
                 else:
                     break
 
             while True:
-                number_of_weeks = int(input("Number of weeks to enter into calendar: "))
+                number_of_weeks = int(
+                    input("Number of weeks to enter into calendar: "))
                 if number_of_weeks > 5:
                     if str.upper(input(f'Number of weeks entered is {number_of_weeks}, are you sure? (y/n): ')) == 'Y':
                         break
@@ -376,7 +391,7 @@ def rota_input():
 
             for i in range(number_of_weeks):
                 for ii in range(7):
-                    rota_event_input(rota_list[rota_number][ii+1], user_date)
+                    rota_event_input(rota_list[rota_number][ii + 1], user_date)
                     user_date = user_date + timedelta(days=1)
                     ii += 1
                 rota_number += 1
@@ -393,7 +408,8 @@ def rota_input():
                     rota_number = 1
 
         else:
-            print(f'The date {user_date.strftime("%d %b %Y")} is not a Sunday. Please enter again.')
+            print(
+                f'The date {user_date.strftime("%d %b %Y")} is not a Sunday. Please enter again.')
             continue
 
         user_continue = str.upper(input('Add duties to other weeks? (y/n): '))
@@ -409,7 +425,8 @@ def weekly_input():
     while True:
         while True:
             try:
-                user_date_input = adjust_datetime(input('\nWeek commencing (eg. 21 Jul 19): '))
+                user_date_input = adjust_datetime(
+                    input('\nWeek commencing (eg. 21 Jul 19): '))
             except IndexError:
                 print('Date format is incorrect. Please enter again.')
             else:
@@ -423,7 +440,8 @@ def weekly_input():
                 user_date = user_date + timedelta(days=1)
                 i += 1
         else:
-            print(f'The date {user_date.strftime("%d %b %Y")} is not a Sunday. Please enter again.')
+            print(
+                f'The date {user_date.strftime("%d %b %Y")} is not a Sunday. Please enter again.')
             continue
         user_continue = str.upper(input('Add duties to another week? (y/n): '))
         if user_continue == 'Y':
@@ -438,7 +456,8 @@ def daily_input():
     while True:
         while True:
             try:
-                user_date_input = adjust_datetime(input('\nDate of duty or rest day (eg. 21 Jul 19): '))
+                user_date_input = adjust_datetime(
+                    input('\nDate of duty or rest day (eg. 21 Jul 19): '))
             except IndexError:
                 print('Date format is incorrect. Please enter again.')
             else:
@@ -447,7 +466,8 @@ def daily_input():
         user_date = user_date_input[0]
         print('\nEnter the duty number or RD for rest day.')
         user_event_input(user_date)
-        user_continue = str.upper(input('Add more duties to a different date? (y/n): '))
+        user_continue = str.upper(
+            input('Add more duties to a different date? (y/n): '))
         if user_continue == 'Y':
             continue
         else:
