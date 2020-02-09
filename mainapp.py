@@ -42,8 +42,8 @@ duty_sat = pickle.load(load_duty)
 
 rota_list = pickle.load(open('rota_duty_list.pkl', 'rb'))
 
-print('\n### This program will enter \
-West Ruislip Timetable 70 work duties into your Google Calendar. ###')
+print("\n### This program will enter \
+West Ruislip Timetable 70 work duties into your Google Calendar. ###")
 
 # Check if user made a work calendar selection in the past.
 # If not, save the current selection for future use.
@@ -69,10 +69,10 @@ else:
             break
 
 print(
-    f"\nWork calendar selected: \
-    {calendar_list['items'][user_work_calendar - 1]['summary']}\n \
-    If you want to change this selection, delete the file \
-    'work_selection.pkl' and run again.\n"
+    f"\nWork calendar selected: "
+    f"{calendar_list['items'][user_work_calendar - 1]['summary']}\n"
+    f"If you want to change this selection, delete the file "
+    f"'work_selection.pkl' and run again.\n"
 )
 
 # Check if user made a day off calendar selection in the past.
@@ -94,11 +94,12 @@ else:
                 'restday_selection.pkl', 'wb'))
             break
 
-print(f"Rest day calendar selected: \
-    {calendar_list['items'][user_restday_calendar - 1]['summary']}\n \
-    If you want to change this selection, delete the file \
-    'restday_selection.pkl' and run again.\n"
-      )
+print(
+    f"Rest day calendar selected: "
+    f"{calendar_list['items'][user_restday_calendar - 1]['summary']}\n"
+    f"If you want to change this selection, delete the file "
+    f"'restday_selection.pkl' and run again.\n"
+)
 
 work_calendar = calendar_list['items'][user_work_calendar - 1]['id']
 restday_calendar = calendar_list['items'][user_restday_calendar - 1]['id']
