@@ -60,36 +60,45 @@ else:
         try:
             user_work_calendar = int(
                 input('\nEnter the number of the Google calendar to use for \
-                    work duties: '))
-        except:
+                work duties: ')
+            )
+        except Exception:
             print('Enter a valid calendar number. Please enter again.')
         else:
             pickle.dump(user_work_calendar, open('work_selection.pkl', 'wb'))
             break
 
-print(f"\nWork calendar selected: {calendar_list['items'][user_work_calendar - 1]['summary']}\n"
-      f"If you want to change this selection, delete the file 'work_selection.pkl' "
-      f"and run again.\n")
+print(
+    f"\nWork calendar selected: \
+    {calendar_list['items'][user_work_calendar - 1]['summary']}\n \
+    If you want to change this selection, delete the file \
+    'work_selection.pkl' and run again.\n"
+)
 
-# Check if user made a day off calendar selection in the past. Calendar can be same as the work one.
+# Check if user made a day off calendar selection in the past.
+# Calendar can be same as the work one.
 # If not, save the current selection for future use.
 if os.path.exists('restday_selection.pkl'):
     user_restday_calendar = pickle.load(open('restday_selection.pkl', 'rb'))
 else:
     while True:
         try:
-            user_restday_calendar = int(input('Enter the number of the Google calendar to use for rest days '
-                                              '(can be the same as the work calendar): '))
-        except:
+            user_restday_calendar = int(input('Enter the number of the \
+                                    Google calendar to use for rest days \
+                                    (can be the same as the work calendar): ')
+                                        )
+        except Exception:
             print('Enter a valid calendar number. Please enter again.')
         else:
             pickle.dump(user_restday_calendar, open(
                 'restday_selection.pkl', 'wb'))
             break
 
-print(f"Rest day calendar selected: {calendar_list['items'][user_restday_calendar - 1]['summary']}\n"
-      f"If you want to change this selection, delete the file 'restday_selection.pkl' "
-      f"and run again.\n")
+print(f"Rest day calendar selected: \
+    {calendar_list['items'][user_restday_calendar - 1]['summary']}\n \
+    If you want to change this selection, delete the file \
+    'restday_selection.pkl' and run again.\n"
+      )
 
 work_calendar = calendar_list['items'][user_work_calendar - 1]['id']
 restday_calendar = calendar_list['items'][user_restday_calendar - 1]['id']
@@ -103,7 +112,8 @@ def adjust_datetime(user_date_input):
 
 
 # sending the event to google calendar
-def create_duty_event(event_start_time, summary, minutes_time=1, hours_time=1, description=None):
+def create_duty_event(event_start_time, summary, minutes_time=1, hours_time=1,
+                      description=None):
     timezone = 'Europe/London'
     start_time = datetime.strptime(event_start_time, "%Y-%m-%dT%H:%M:%S")
     end_time = start_time + \
@@ -123,7 +133,8 @@ def create_duty_event(event_start_time, summary, minutes_time=1, hours_time=1, d
             'useDefault': False,
         },
     }
-    return service.events().insert(calendarId=work_calendar, body=event).execute()
+    return service.events().insert(calendarId=work_calendar,
+                                   body=event).execute()
 
 
 # adding a rest day to the calendar
@@ -143,7 +154,9 @@ def create_restday_event(date_restday):
     }
     service.events().insert(calendarId=restday_calendar, body=event).execute()
     print(
-        f'Rest day entered into calendar on {day} {date_restday.strftime("%d %m %Y")}\n')
+        f'Rest day entered into calendar on \
+        {day} {date_restday.strftime("%d %m %Y")}\n'
+    )
 
 
 # next few functions are for adding duties to the calendar. Work duties are
@@ -381,7 +394,8 @@ def rota_input():
                 number_of_weeks = int(
                     input("Number of weeks to enter into calendar: "))
                 if number_of_weeks > 5:
-                    if str.upper(input(f'Number of weeks entered is {number_of_weeks}, are you sure? (y/n): ')) == 'Y':
+                    if str.upper(input(f'Number of weeks entered is \
+                    {number_of_weeks}, are you sure? (y/n): ')) == 'Y':
                         break
                     else:
                         print('\nEnter again.\n')
@@ -409,7 +423,8 @@ def rota_input():
 
         else:
             print(
-                f'The date {user_date.strftime("%d %b %Y")} is not a Sunday. Please enter again.')
+                f'The date {user_date.strftime("%d %b %Y")} is not a Sunday. \
+                Please enter again.')
             continue
 
         user_continue = str.upper(input('Add duties to other weeks? (y/n): '))
@@ -441,7 +456,8 @@ def weekly_input():
                 i += 1
         else:
             print(
-                f'The date {user_date.strftime("%d %b %Y")} is not a Sunday. Please enter again.')
+                f'The date {user_date.strftime("%d %b %Y")} is not a Sunday. \
+                Please enter again.')
             continue
         user_continue = str.upper(input('Add duties to another week? (y/n): '))
         if user_continue == 'Y':
