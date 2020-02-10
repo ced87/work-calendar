@@ -8,7 +8,7 @@ import datefinder
 
 # If modifying these scopes, delete the file token.pkl.
 # Scopes are basically paths for different permissions.
-scope = ['https://www.googleapis.com/auth/calendar']
+scope = ['https://www.googleapis.com/auth/calendar.events']
 
 credentials = None
 # The file token.pkl stores the user's access and refresh tokens, and is
@@ -30,25 +30,20 @@ if not credentials or not credentials.valid:
 service = build("calendar", "v3", credentials=credentials)
 calendar_list = service.calendarList().list().execute()
 
-# load in the duties dictionaries.
-load_duty = open('duty_sun.pkl', 'rb')
-duty_sun = pickle.load(load_duty)
-load_duty = open('duty_mon_thur.pkl', 'rb')
-duty_mon_thur = pickle.load(load_duty)
-load_duty = open('duty_fri.pkl', 'rb')
-duty_fri = pickle.load(load_duty)
-load_duty = open('duty_sat.pkl', 'rb')
-duty_sat = pickle.load(load_duty)
+# load in the duties and rota dictionaries.
+duty_sun = pickle.load(open('duty_sun.pkl', 'rb'))
+duty_mon_thur = pickle.load(open('duty_mon_thur.pkl', 'rb'))
+duty_fri = pickle.load(open('duty_fri.pkl', 'rb'))
+duty_sat = pickle.load(open('duty_sat.pkl', 'rb'))
+rota_list = pickle.load(open('duty_rota_list.pkl', 'rb'))
 
-rota_list = pickle.load(open('rota_duty_list.pkl', 'rb'))
-
-print("\n### This program will enter \
-West Ruislip Timetable 70 work duties into your Google Calendar. ###")
+print("\n### This program will enter "
+      "West Ruislip Timetable 70 work duties into your Google Calendar ###")
 
 # Check if user made a work calendar selection in the past.
 # If not, save the current selection for future use.
-if os.path.exists('work_selection.pkl'):
-    user_work_calendar = pickle.load(open('work_selection.pkl', 'rb'))
+if os.path.exists('work_cal_id.pkl'):
+    work_cal_id = pickle.load(open('work_cal_id.pkl', 'rb'))
 else:
     x = 1
     print('\nThis is a list of your Google calendars: ')
@@ -58,51 +53,56 @@ else:
 
     while True:
         try:
-            user_work_calendar = int(
-                input('\nEnter the number of the Google calendar to use for \
-                work duties: ')
+            work_cal_id = int(
+                input("\nEnter the number of the Google calendar to use for "
+                      "work duties: ")
             )
         except Exception:
             print('Enter a valid calendar number. Please enter again.')
         else:
-            pickle.dump(user_work_calendar, open('work_selection.pkl', 'wb'))
+            pickle.dump(calendar_list['items'][work_cal_id - 1]['id'],
+                        open('work_cal_id.pkl', 'wb'))
+            work_cal_id = calendar_list['items'][work_cal_id - 1]['id']
             break
 
 print(
     f"\nWork calendar selected: "
-    f"{calendar_list['items'][user_work_calendar - 1]['summary']}\n"
+    f"{service.calendars().get(calendarId=work_cal_id).execute()['summary']}\n"
     f"If you want to change this selection, delete the file "
-    f"'work_selection.pkl' and run again.\n"
+    f"'work_cal_id.pkl' and run again.\n"
 )
 
-# Check if user made a day off calendar selection in the past.
-# Calendar can be same as the work one.
+# Check if user made a rest day calendar selection in the past.
 # If not, save the current selection for future use.
-if os.path.exists('restday_selection.pkl'):
-    user_restday_calendar = pickle.load(open('restday_selection.pkl', 'rb'))
+if os.path.exists('rest_cal_id.pkl'):
+    rest_cal_id = pickle.load(open('rest_cal_id.pkl', 'rb'))
 else:
+    x = 1
+    print('\nThis is a list of your Google calendars: ')
+    for item in calendar_list['items']:
+        print(f"{x} - {calendar_list['items'][x - 1]['summary']}")
+        x += 1
+
     while True:
         try:
-            user_restday_calendar = int(input('Enter the number of the \
-                                    Google calendar to use for rest days \
-                                    (can be the same as the work calendar): ')
-                                        )
+            rest_cal_id = int(
+                input("\nEnter the number of the Google calendar to use for "
+                      "rest days (can be the same as the duties calendar): ")
+            )
         except Exception:
             print('Enter a valid calendar number. Please enter again.')
         else:
-            pickle.dump(user_restday_calendar, open(
-                'restday_selection.pkl', 'wb'))
+            pickle.dump(calendar_list['items'][rest_cal_id - 1]['id'],
+                        open('rest_cal_id.pkl', 'wb'))
+            rest_cal_id = calendar_list['items'][rest_cal_id - 1]['id']
             break
 
 print(
-    f"Rest day calendar selected: "
-    f"{calendar_list['items'][user_restday_calendar - 1]['summary']}\n"
+    f"\nRest day calendar selected: "
+    f"{service.calendars().get(calendarId=rest_cal_id).execute()['summary']}\n"
     f"If you want to change this selection, delete the file "
-    f"'restday_selection.pkl' and run again.\n"
+    f"'rest_cal_id.pkl' and run again.\n"
 )
-
-work_calendar = calendar_list['items'][user_work_calendar - 1]['id']
-restday_calendar = calendar_list['items'][user_restday_calendar - 1]['id']
 
 
 # fixing the date and time because google calendar needs it in a specific way.
@@ -134,29 +134,27 @@ def create_duty_event(event_start_time, summary, minutes_time=1, hours_time=1,
             'useDefault': False,
         },
     }
-    return service.events().insert(calendarId=work_calendar,
+    return service.events().insert(calendarId=work_cal_id,
                                    body=event).execute()
 
 
 # adding a rest day to the calendar
 def create_restday_event(date_restday):
-    date_fixed = date_restday.strftime('%d %m %Y')
+    date_fixed = date_restday.strftime('%d %b %Y')
     day = adjust_datetime(f"{date_fixed}")[1]
-    start_date = date_restday
-    end_date = date_restday + timedelta(days=1)
     event = {
         'summary': 'RD',
         'start': {
-            'date': start_date.strftime("%Y-%m-%d"),
+            'date': date_restday.strftime("%Y-%m-%d"),
         },
         'end': {
-            'date': end_date.strftime("%Y-%m-%d"),
+            'date': date_restday.strftime("%Y-%m-%d"),
         }
     }
-    service.events().insert(calendarId=restday_calendar, body=event).execute()
+    service.events().insert(calendarId=rest_cal_id, body=event).execute()
     print(
-        f'Rest day entered into calendar on \
-        {day} {date_restday.strftime("%d %m %Y")}\n'
+        f"Rest day entered into calendar on "
+        f'{day} {date_fixed}\n'
     )
 
 
