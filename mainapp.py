@@ -142,14 +142,15 @@ def create_duty_event(event_start_time, summary, minutes_time=1, hours_time=1,
 def create_restday_event(date_restday):
     date_fixed = date_restday.strftime('%d %b %Y')
     day = adjust_datetime(f"{date_fixed}")[1]
+    next_day = date_restday + timedelta(days=1)
     event = {
         'summary': 'RD',
         'start': {
             'date': date_restday.strftime("%Y-%m-%d"),
         },
         'end': {
-            'date': date_restday.strftime("%Y-%m-%d"),
-        }
+            'date': next_day.strftime("%Y-%m-%d"),
+        },
     }
     service.events().insert(calendarId=rest_cal_id, body=event).execute()
     print(
@@ -393,8 +394,9 @@ def rota_input():
                 number_of_weeks = int(
                     input("Number of weeks to enter into calendar: "))
                 if number_of_weeks > 5:
-                    if str.upper(input(f'Number of weeks entered is \
-                    {number_of_weeks}, are you sure? (y/n): ')) == 'Y':
+                    if str.upper(input(f'Number of weeks entered is'
+                                       f' {number_of_weeks}, are you sure? '
+                                       f'(y/n): ')) == 'Y':
                         break
                     else:
                         print('\nEnter again.\n')

@@ -133,7 +133,9 @@ dmypy.json
 Rota/
 backups/
 builderapps/
+testing/
 token.pkl
 client_secret.json
-restday_selection.pkl
-work_selection.pkl
+rest_cal_id.pkl
+work_cal_id.pkl
+misc_cal_id.pkl
