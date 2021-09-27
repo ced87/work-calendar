@@ -139,3 +139,4 @@ client_secret.json
 rest_cal_id.pkl
 work_cal_id.pkl
 misc_cal_id.pkl
+Pipfile.lock
