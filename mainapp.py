@@ -1,49 +1,49 @@
-import pickle
+import json
 import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
 from datetime import datetime, timedelta
 import datefinder
 
 # If modifying these scopes, delete the file token.pkl.
 # Scopes are basically paths for different permissions.
-scope = ['https://www.googleapis.com/auth/calendar.events']
+scope = ['https://www.googleapis.com/auth/calendar']
 
-credentials = None
-# The file token.pkl stores the user's access and refresh tokens, and is
-# created automatically when the authorisation
-# flow completes for the first time.
-if os.path.exists('token.pkl'):
-    credentials = pickle.load(open("token.pkl", "rb"))
+creds = None
+# The file token.json stores the user's access and refresh tokens, and is
+# created automatically when the authorization flow completes for the first
+# time.
+if os.path.exists('token.json'):
+    creds = Credentials.from_authorized_user_file('token.json', scope)
 # If there are no (valid) credentials available, let the user log in.
-if not credentials or not credentials.valid:
-    if credentials and credentials.expired and credentials.refresh_token:
-        credentials.refresh(Request())
+if not creds or not creds.valid:
+    if creds and creds.expired and creds.refresh_token:
+        creds.refresh(Request())
     else:
         flow = InstalledAppFlow.from_client_secrets_file(
-            'client_secret.json', scope)
-        credentials = flow.run_local_server()
-        # Save the credentials for the next run
-        pickle.dump(credentials, open("token.pkl", "wb"))
+            'credentials.json', scope)
+        creds = flow.run_local_server(port=0)
+    # Save the credentials for the next run
+    with open('token.json', 'w') as token:
+        token.write(creds.to_json())
 
-service = build("calendar", "v3", credentials=credentials)
+service = build('calendar', 'v3', credentials=creds)
+
 calendar_list = service.calendarList().list().execute()
 
-# load in the duties and rota dictionaries.
-duty_sun = pickle.load(open('duty_sun.pkl', 'rb'))
-duty_mon_thur = pickle.load(open('duty_mon_thur.pkl', 'rb'))
-duty_fri = pickle.load(open('duty_fri.pkl', 'rb'))
-duty_sat = pickle.load(open('duty_sat.pkl', 'rb'))
-rota_list = pickle.load(open('duty_rota_list.pkl', 'rb'))
+# load in the duties and rota dictionary.
+duties = json.load(open('duties.json', 'r'))
 
 print("\n### This program will enter "
-      "West Ruislip Timetable 70 work duties into your Google Calendar ###")
+      "West Ruislip work duties & rest days into your Google Calendar ###")
 
-# Check if user made a work calendar selection in the past.
-# If not, save the current selection for future use.
-if os.path.exists('work_cal_id.pkl'):
-    work_cal_id = pickle.load(open('work_cal_id.pkl', 'rb'))
+# Check if user made calendar selections in the past.
+# If not, save the current selections for future use.
+if os.path.exists('./calendar_ids.json'):
+    work_cal_id = json.load(open('./calendar_ids.json', 'r'))['work']
+    rest_cal_id = json.load(open('./calendar_ids.json', 'r'))['rest']
 else:
     x = 1
     print('\nThis is a list of your Google calendars: ')
@@ -54,54 +54,35 @@ else:
     while True:
         try:
             work_cal_id = int(
-                input("\nEnter the number of the Google calendar to use for "
-                      "work duties: ")
+                input("\nEnter the number of the Google calendar to use"
+                      " for work duties: ")
+            )
+        except IndexError:
+            print('Enter a valid calendar number. Please enter again.')
+        else:
+            work_cal_id = calendar_list['items'][work_cal_id - 1]['id']
+            break
+    while True:
+        try:
+            rest_cal_id = int(
+                input("Enter the number of the Google calendar to use for"
+                      " rest days (can be the same as the duties calendar): ")
             )
         except Exception:
             print('Enter a valid calendar number. Please enter again.')
         else:
-            pickle.dump(calendar_list['items'][work_cal_id - 1]['id'],
-                        open('work_cal_id.pkl', 'wb'))
-            work_cal_id = calendar_list['items'][work_cal_id - 1]['id']
+            rest_cal_id = calendar_list['items'][rest_cal_id - 1]['id']
+            json.dump({'work': work_cal_id, 'rest': rest_cal_id},
+                      open('./calendar_ids.json', 'w'))
             break
 
 print(
     f"\nWork calendar selected: "
-    f"{service.calendars().get(calendarId=work_cal_id).execute()['summary']}\n"
-    f"If you want to change this selection, delete the file "
-    f"'work_cal_id.pkl' and run again.\n"
-)
-
-# Check if user made a rest day calendar selection in the past.
-# If not, save the current selection for future use.
-if os.path.exists('rest_cal_id.pkl'):
-    rest_cal_id = pickle.load(open('rest_cal_id.pkl', 'rb'))
-else:
-    x = 1
-    print('\nThis is a list of your Google calendars: ')
-    for item in calendar_list['items']:
-        print(f"{x} - {calendar_list['items'][x - 1]['summary']}")
-        x += 1
-
-    while True:
-        try:
-            rest_cal_id = int(
-                input("\nEnter the number of the Google calendar to use for "
-                      "rest days (can be the same as the duties calendar): ")
-            )
-        except Exception:
-            print('Enter a valid calendar number. Please enter again.')
-        else:
-            pickle.dump(calendar_list['items'][rest_cal_id - 1]['id'],
-                        open('rest_cal_id.pkl', 'wb'))
-            rest_cal_id = calendar_list['items'][rest_cal_id - 1]['id']
-            break
-
-print(
+    f"{service.calendars().get(calendarId=work_cal_id).execute()['summary']}"
     f"\nRest day calendar selected: "
     f"{service.calendars().get(calendarId=rest_cal_id).execute()['summary']}\n"
-    f"If you want to change this selection, delete the file "
-    f"'rest_cal_id.pkl' and run again.\n"
+    f"\nIf you want to change this selection, delete the file "
+    f"'calendar_ids.json' and run again.\n"
 )
 
 
@@ -162,7 +143,7 @@ def create_restday_event(date_restday):
 # next few functions are for adding duties to the calendar. Work duties are
 # different for Friday, Saturday, Sunday, and Monday to Thursday.
 def create_sunday_event(duty_number, duty_date):
-    duty_list = duty_sun
+    duty_list = duties['Sun']
     date_fixed = duty_date.strftime('%d %b %Y')
     duty_date_time = adjust_datetime(
         f"{date_fixed} {duty_list[duty_number]['start']}")[0]
@@ -178,7 +159,7 @@ def create_sunday_event(duty_number, duty_date):
 
 
 def create_monday_thursday_event(duty_number, duty_date):
-    duty_list = duty_mon_thur
+    duty_list = duties['MonThur']
     date_fixed = duty_date.strftime('%d %b %Y')
     duty_date_time = adjust_datetime(
         f"{date_fixed} {duty_list[duty_number]['start']}")[0]
@@ -194,7 +175,7 @@ def create_monday_thursday_event(duty_number, duty_date):
 
 
 def create_friday_event(duty_number, duty_date):
-    duty_list = duty_fri
+    duty_list = duties['Fri']
     date_fixed = duty_date.strftime('%d %b %Y')
     duty_date_time = adjust_datetime(
         f"{date_fixed} {duty_list[duty_number]['start']}")[0]
@@ -210,7 +191,7 @@ def create_friday_event(duty_number, duty_date):
 
 
 def create_saturday_event(duty_number, duty_date):
-    duty_list = duty_sat
+    duty_list = duties['Sat']
     date_fixed = duty_date.strftime('%d %b %Y')
     duty_date_time = adjust_datetime(
         f"{date_fixed} {duty_list[duty_number]['start']}")[0]
@@ -406,7 +387,8 @@ def rota_input():
 
             for i in range(number_of_weeks):
                 for ii in range(7):
-                    rota_event_input(rota_list[rota_number][ii + 1], user_date)
+                    rota_event_input(duties['Rota'][str(rota_number)]
+                                     [str(ii + 1)], user_date)
                     user_date = user_date + timedelta(days=1)
                     ii += 1
                 rota_number += 1
@@ -424,8 +406,8 @@ def rota_input():
 
         else:
             print(
-                f'The date {user_date.strftime("%d %b %Y")} is not a Sunday. \
-                Please enter again.')
+                f'The date {user_date.strftime("%d %b %Y")} is not a Sunday.'
+                ' Please enter again.')
             continue
 
         user_continue = str.upper(input('Add duties to other weeks? (y/n): '))
@@ -457,8 +439,8 @@ def weekly_input():
                 i += 1
         else:
             print(
-                f'The date {user_date.strftime("%d %b %Y")} is not a Sunday. \
-                Please enter again.')
+                f'The date {user_date.strftime("%d %b %Y")} is not a Sunday.'
+                ' Please enter again.')
             continue
         user_continue = str.upper(input('Add duties to another week? (y/n): '))
         if user_continue == 'Y':
