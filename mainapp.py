@@ -474,25 +474,30 @@ def daily_input():
 
 
 # run the app
-while True:
-    start_selection = input('*************************'
-                            '\n\n1 - Weekly input'
-                            '\n2 - Daily input'
-                            '\n3 - Rota input'
-                            '\n\n4 - Exit'
-                            '\n\nSelect from 1 to 4: ')
-    if start_selection == '1':
-        weekly_input()
-        break
-    elif start_selection == '2':
-        daily_input()
-        break
-    elif start_selection == '3':
-        rota_input()
-        break
-    elif start_selection == '4':
-        break
-    else:
-        print('Please try again.')
+def main():
+    while True:
+        start_selection = input('*************************'
+                                '\n\n1 - Weekly input'
+                                '\n2 - Daily input'
+                                '\n3 - Rota input'
+                                '\n\n4 - Exit'
+                                '\n\nSelect from 1 to 4: ')
+        if start_selection == '1':
+            weekly_input()
+            break
+        elif start_selection == '2':
+            daily_input()
+            break
+        elif start_selection == '3':
+            rota_input()
+            break
+        elif start_selection == '4':
+            break
+        else:
+            print('Please try again.')
+
+
+if __name__ == '__main__':
+    main()
 
 print('\nDuty entry done. Program ended.')
