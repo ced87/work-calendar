@@ -4,8 +4,10 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pycodestyle = "*"
 rope = "*"
+flake8 = "*"
+colorama = "*"
+pyinstaller = "*"
 
 [packages]
 google-api-python-client = "*"

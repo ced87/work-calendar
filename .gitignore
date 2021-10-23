@@ -1,4 +1,4 @@
-#vs code
+# vscode
 .vscode/
 
 # Byte-compiled / optimized / DLL files
@@ -91,7 +91,8 @@ ipython_config.py
 #   However, in case of collaboration, if having platform-specific dependencies or dependencies
 #   having no cross-platform support, pipenv may install dependencies that don't work, or not
 #   install all needed dependencies.
-#Pipfile.lock
+Pipfile.lock
+Pipfile
 
 # celery beat schedule file
 celerybeat-schedule
@@ -118,7 +119,7 @@ venv.bak/
 # mkdocs documentation
 /site
 
-#PyCharm
+# PyCharm
 .idea/
 
 # mypy
@@ -129,12 +130,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-#my app files
-Rota/
-backups/
-builderapps/
-testing/
+# My files
+misc/
 calendar_ids.json
 token.json
 credentials.json
-Pipfile.lock
+Pipfile
